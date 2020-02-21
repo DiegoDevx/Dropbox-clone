@@ -46,12 +46,42 @@ class DropBoxController {
 
         this.inputFilesEl.addEventListener('change', event => {
 
-            this.uploadTask(event.target.files);
+            this.btnSendFileEl.disabled = true;
+
+            this.uploadTask(event.target.files).then(responses =>{
+
+                responses.forEach(resp => {
+
+                    this.getFirebaseRef().push().set(resp.files['input-file']);
+
+                });
+
+                this.uploadComplete();
+
+            }).catch(err=>{
+
+                this.uploadComplete();
+                console.error(err);
+
+            });
 
             this.modalShow();
 
-            this.inputFilesEl.value = '';
         });
+
+    }
+
+    uploadComplete(){
+
+        this.modalShow(false);
+        this.inputFilesEl.value = '';
+        this.btnSendFileEl.disabled = false;
+
+    }
+
+    getFirebaseRef(){
+
+        return firebase.database().ref('files');
 
     }
 
@@ -67,7 +97,7 @@ class DropBoxController {
                             <path d="M77.955 53h50.04A3.002 3.002 0 0 1 131 56.007v58.988a4.008 4.008 0 0 1-4.003 4.005H39.003A4.002 4.002 0 0 1 35 114.995V45.99c0-2.206 1.79-3.99 3.997-3.99h26.002c1.666 0 3.667 1.166 4.49 2.605l3.341 5.848s1.281 2.544 5.12 2.544l.005.003z" fill="#71B9F4"></path>
                             <path d="M77.955 52h50.04A3.002 3.002 0 0 1 131 55.007v58.988a4.008 4.008 0 0 1-4.003 4.005H39.003A4.002 4.002 0 0 1 35 113.995V44.99c0-2.206 1.79-3.99 3.997-3.99h26.002c1.666 0 3.667 1.166 4.49 2.605l3.341 5.848s1.281 2.544 5.12 2.544l.005.003z" fill="#92CEFF"></path>
                     </g>
-                </svg>`
+                </svg>`;
 
             break;
 
@@ -261,8 +291,6 @@ class DropBoxController {
 
                 ajax.onload = event => {
 
-                    this.modalShow(false);
-
                     try {
 
                         resolve(JSON.parse(ajax.responseText));
@@ -277,7 +305,6 @@ class DropBoxController {
 
                 ajax.onerror = event => {
 
-                    this.modalShow(false);
                     reject(event);
 
                 };
